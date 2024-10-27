@@ -1,5 +1,5 @@
 use std::net::TcpListener;
-use womscp::womscp::WOMSCP;
+use womscp_lib::womscp;
 
 
 fn main() {
@@ -8,7 +8,7 @@ fn main() {
     for stream_res in listener.incoming() {
         match stream_res {
             Ok(stream) => {
-                match WOMSCP::try_from(stream) {
+                match womscp::Request::try_from(stream) {
                     Ok(res) => { 
                         dbg!(res);
                     },
