@@ -1,14 +1,16 @@
 use tokio::net::TcpListener;
+use sqlx::sqlite::SqlitePool;
 
 mod connections;
 
 #[tokio::main]
 async fn main() {
     let listener = TcpListener::bind("127.0.0.1:8000").await.unwrap();
+    let conn = SqlitePool::connect("sqlite:w_orchid.db").await.unwrap();
 
     loop {
         if let Ok((stream, _)) = listener.accept().await {
-            let res = connections::handle_connection(&stream)
+            let res = connections::handle_connection(&conn, &stream)
                 .await;
 
             if let Err(tcp_err) = match res {
