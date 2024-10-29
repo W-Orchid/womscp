@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 womscp-lib = { git = "https://github.com/W-Orchid/womscp-lib.git" }
+tokio = { version = "1", features = ["full"] }
