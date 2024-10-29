@@ -1,11 +1,14 @@
-use std::net::TcpListener;
+use tokio::net::TcpListener;
 
 mod connections;
 
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:8000").unwrap();
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("127.0.0.1:8000").await.unwrap();
 
-    for stream_res in listener.incoming() {
-        connections::handle_connection(stream_res);
+    loop {
+        if let Ok((stream, _)) = listener.accept().await {
+            connections::handle_connection(stream);
+        }
     }
 }
