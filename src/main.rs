@@ -8,7 +8,15 @@ async fn main() {
 
     loop {
         if let Ok((stream, _)) = listener.accept().await {
-            connections::handle_connection(stream);
+            let res = connections::handle_connection(&stream)
+                .await;
+
+            if let Err(tcp_err) = match res {
+                Ok(_) => stream.try_write(&[0]),
+                Err(res_err) => stream.try_write(&[res_err as u8])
+            } {
+                eprintln!("TCP write error: {:?}", tcp_err);
+            }
         }
     }
 }

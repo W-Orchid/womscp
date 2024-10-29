@@ -1,12 +1,13 @@
 use tokio::net::TcpStream;
 
-use womscp_lib::womscp::{self, ResponseError};
+use womscp_lib::womscp::{Request, ResponseError};
 
-pub async fn handle_connection(stream :TcpStream) -> Result<(), ResponseError> {
 
-    match womscp::Request::try_from(&stream) {
+pub async fn handle_connection(stream :&TcpStream) -> Result<(), ResponseError> {
+    match Request::try_from(stream) {
         Ok(req) => { 
             dbg!(req);
+            Ok(())
         },
         Err(res_err) => {
             eprintln!("WOMSCP parsing error: {:?}", res_err);
