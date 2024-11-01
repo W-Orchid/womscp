@@ -10,17 +10,20 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
 
             let db_check = sqlx::query(
                 "SELECT id FROM Sensors
-                      WHERE sID = $1 AND mID = $2"
+                      WHERE s_id = $1 AND m_id = $2 AND sensor_type = $3"
             )
                 .bind(req.s_id)
                 .bind(req.m_id)
+                .bind(req.sensor_type)
                 .fetch_one(conn)
                 .await;
 
             if let Err(e) = db_check {
                 match e {
                     sqlx::Error::RowNotFound => {
-                        eprintln!("Error! Unrecognized node mID={}, sID={}", req.m_id, req.s_id);
+                        eprintln!("Error! Unrecognized node m_id={}, s_id={}, sensor_type={}", 
+                            req.m_id, req.s_id, req.sensor_type);
+
                         return Err(ResponseError::Unrecognised);
                     },
 
@@ -32,8 +35,8 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
             }
 
             let db_res = sqlx::query(
-                "INSERT INTO Data(timestamp, mId, sID, data, dummy)
-                VALUES(datetime('now'), $1, $2, $3, $4)")
+                "INSERT INTO SensorData
+                VALUES(NULL, datetime('now'), $1, $2, $3, $4)")
                 .bind(req.m_id)
                 .bind(req.s_id)
                 .bind(req.data)
