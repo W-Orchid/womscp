@@ -35,8 +35,8 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
             }
 
             let db_res = sqlx::query(
-                "INSERT INTO SensorData(NULL, timepoint, m_id, s_id, sensor_data, dummy)
-                VALUES(datetime('now'), $1, $2, $3, $4)")
+                "INSERT INTO SensorData
+                VALUES(NULL, datetime('now'), $1, $2, $3, $4)")
                 .bind(req.m_id)
                 .bind(req.s_id)
                 .bind(req.data)
