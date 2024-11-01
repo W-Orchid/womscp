@@ -5,7 +5,7 @@ mod connections;
 
 #[tokio::main]
 async fn main() {
-    let listener = TcpListener::bind("127.0.0.1:8000").await.unwrap();
+    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
     let conn = SqlitePool::connect("sqlite:w_orchid.db").await.unwrap();
 
     loop {
