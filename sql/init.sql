@@ -25,3 +25,6 @@ CREATE TABLE SensorData(
        dummy BOOLEAN NOT NULL,       
        FOREIGN KEY (s_id) REFERENCES Sensors(s_id) ON DELETE CASCADE,       
        FOREIGN KEY (m_id) REFERENCES Microcontrollers(id) ON DELETE CASCADE);
+
+
+.read sql/config.sql
