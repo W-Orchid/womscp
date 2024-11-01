@@ -14,24 +14,20 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
             )
                 .bind(req.s_id)
                 .bind(req.m_id)
-                .fetch_all(conn)
+                .fetch_one(conn)
                 .await;
 
-            match db_check {
-                Ok(rows) => {
-                    if rows.len() == 0 {
-                        eprintln!("Unrecognized sensor identifier! sID = {}, mID = {}", req.s_id, req.m_id);
+            if let Err(e) = db_check {
+                match e {
+                    sqlx::Error::RowNotFound => {
+                        eprintln!("Error! Unrecognized node mID={}, sID={}", req.m_id, req.s_id);
                         return Err(ResponseError::Unrecognised);
-                    }
+                    },
 
-                    if rows.len() > 1 {
-                        panic!("More than one sensors identified with the following: sID = {}, mID = {}", req.s_id, req.m_id);
+                    _ => {
+                        eprintln!("Database error: {:?}", e);
+                        return Err(ResponseError::Database);
                     }
-                },
-
-                Err(e) => {
-                    eprintln!("Database error: {:?}", e);
-                    return Err(ResponseError::Database);
                 }
             }
 
