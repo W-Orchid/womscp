@@ -29,6 +29,7 @@ static DEFAULT_CONFIG :&'static str = "config.toml";
 pub struct ServerConfig {
     pub address :String,
     pub database :String,
+    pub sensor_types :Vec<String>,
     pub microcontroller_count :u16,
     pub sensors_per_microcontroller :u8
 }
@@ -40,6 +41,7 @@ impl ServerConfig {
         let server_config = ServerConfig {
             address: "127.0.0.1:3000".to_string(),
             database: "sqlite:w_orchid.db".to_string(),
+            sensor_types: vec![],
             microcontroller_count: 1,
             sensors_per_microcontroller: 2
         };
@@ -53,20 +55,29 @@ impl ServerConfig {
 }
 
 
-impl TryFrom<&'static str> for ServerConfig {
+impl TryFrom<&str> for ServerConfig {
     type Error = io::Error;
 
-    fn try_from(file: &'static str) -> Result<Self, Self::Error> {
+    fn try_from(file: &str) -> Result<Self, Self::Error> {
+        file.to_string().try_into()
+    }
+}
+
+impl TryFrom<String> for ServerConfig {
+    type Error = io::Error;
+
+    fn try_from(file: String) -> Result<Self, Self::Error> {
         // NOTE: Default values for server config.
         let mut server_config = ServerConfig {
             address: "127.0.0.1:3000".to_string(),
             database: "sqlite:w_orchid.db".to_string(),
+            sensor_types: vec![],
             microcontroller_count: 1,
             sensors_per_microcontroller: 2
         };
 
         let contents = fs::read_to_string(file)?;
-        let config = match contents.parse::<Table>() {
+        let mut config = match contents.parse::<Table>() {
             Ok(_config) => _config,
             Err(e) => {
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, e.message()))
@@ -85,6 +96,14 @@ impl TryFrom<&'static str> for ServerConfig {
             server_config.database
         };
 
+        if let Some(sensor_types) = config["sensor_types"].as_array_mut() {
+            sensor_types.iter_mut().for_each(|t| {
+                server_config.sensor_types.push(t.as_str().unwrap().to_string())
+            });
+        } else {
+            panic!("Config error: no sensor types were provided!");
+        }
+
         server_config.microcontroller_count = if let Some(_count) = config["microcontroller_count"].as_integer(){
             _count as u16
         } else {
@@ -101,4 +120,43 @@ impl TryFrom<&'static str> for ServerConfig {
 
         Ok(server_config)
     }
+}
+
+
+pub async fn server_init(server_config :&ServerConfig) {
+    let conn = sqlx::SqlitePool::connect(&server_config.database).await.unwrap();
+
+    let sensor_types_it = server_config.sensor_types.iter();
+    for t in sensor_types_it {
+        sqlx::query(
+            "INSERT INTO SensorTypes VALUES(NULL, $1)"
+        )
+            .bind(t)
+            .execute(&conn)
+            .await
+            .unwrap();
+    }
+
+    for m_id in 0..server_config.microcontroller_count {
+        sqlx::query(
+            "INSERT INTO Microcontrollers VALUES(NULL)"
+        )
+            .execute(&conn)
+            .await
+            .unwrap();
+
+        for s_id in 0..server_config.sensors_per_microcontroller {
+            sqlx::query(
+                "INSERT INTO Sensors VALUES(NULL, $1, $2)"
+            )
+                .bind(s_id)
+                .bind(m_id)
+                .execute(&conn)
+                .await
+                .unwrap();
+
+            }
+    }
+
+    conn.close().await;
 }

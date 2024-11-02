@@ -1,3 +1,4 @@
+use init::server_init;
 use tokio::net::TcpListener;
 use sqlx::sqlite::SqlitePool;
 use clap::Parser;
@@ -10,12 +11,20 @@ async fn main() {
 
     let cli = init::Cli::parse();
 
-    let server_config : init::ServerConfig = match &cli.command {
+    let server_config : init::ServerConfig = match cli.command {
         Some(init::Commands::Init { config }) => {
-            todo!("init server");
+            let local_config :init::ServerConfig = if let Some(conf) = config {
+                conf.try_into().unwrap()
+            } else {
+                init::ServerConfig::new()
+            };
+
+            server_init(&local_config).await;
+            local_config
         },
-        None => { init::ServerConfig::new() }
+        _ => { init::ServerConfig::new() }
     };
+
 
     let listener = TcpListener::bind(&server_config.address).await.unwrap();
     let conn = SqlitePool::connect(&server_config.database).await.unwrap();
