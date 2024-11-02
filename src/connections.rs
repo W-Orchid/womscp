@@ -8,7 +8,7 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
         Ok(req) => { 
             dbg!(&req);
 
-            if req.flags & RequestFlags::SrvrRdy as u8 == 1 {
+            if req.flags & RequestFlags::SrvrRdy as u8 == RequestFlags::SrvrRdy as u8 {
                 return Ok(());
             }
 
@@ -37,7 +37,7 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
                 }
             }
 
-            let is_dummy = if req.flags & RequestFlags::Dummy as u8 == 1 {
+            let is_dummy = if req.flags & RequestFlags::Dummy as u8 == RequestFlags::Dummy as u8 {
                 true
             } else {
                 false
