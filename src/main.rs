@@ -11,18 +11,14 @@ async fn main() {
 
     let cli = init::Cli::parse();
 
-    let server_config : init::ServerConfig = match cli.command {
-        Some(init::Commands::Init { config }) => {
-            let local_config :init::ServerConfig = if let Some(conf) = config {
-                conf.try_into().unwrap()
-            } else {
-                init::ServerConfig::new()
-            };
+    let server_config : init::ServerConfig = if let Some(path) = cli.config {
+        path.try_into().unwrap()
+    } else {
+        init::ServerConfig::new()
+    };
 
-            server_init(&local_config).await;
-            local_config
-        },
-        _ => { init::ServerConfig::new() }
+    if let Some(init::Commands::Init) = cli.command {
+        server_init(&server_config).await;
     };
 
 

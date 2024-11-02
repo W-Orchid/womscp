@@ -1,5 +1,4 @@
-use std::path::Path;
-use std::{fs, io};
+use std::{fs, io, path::{Path, PathBuf}};
 use toml::Table;
 use clap::{Parser, Subcommand};
 
@@ -9,18 +8,18 @@ use clap::{Parser, Subcommand};
 #[command(version = "1.0")]
 #[command(about = "Server that handles the WOMSCP.", long_about = None)]
 pub struct Cli {
-#[command(subcommand)]
+    /// Sets a custom config file
+    #[arg(short, long, value_name = "FILE")]
+    pub config: Option<PathBuf>,
+
+    #[command(subcommand)]
     pub command: Option<Commands>
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
     /// initializes the server
-    Init {
-        /// optional user-defined config file
-        #[arg(short, long)]
-        config: Option<String>
-    }
+    Init
 }
 
 
@@ -59,14 +58,14 @@ impl TryFrom<&str> for ServerConfig {
     type Error = io::Error;
 
     fn try_from(file: &str) -> Result<Self, Self::Error> {
-        file.to_string().try_into()
+        file.try_into()
     }
 }
 
-impl TryFrom<String> for ServerConfig {
+impl TryFrom<PathBuf> for ServerConfig {
     type Error = io::Error;
 
-    fn try_from(file: String) -> Result<Self, Self::Error> {
+    fn try_from(file: PathBuf) -> Result<Self, Self::Error> {
         // NOTE: Default values for server config.
         let mut server_config = ServerConfig {
             address: "127.0.0.1:3000".to_string(),
