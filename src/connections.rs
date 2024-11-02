@@ -1,9 +1,11 @@
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use tokio::net::TcpStream;
 use sqlx::SqlitePool;
 
 use womscp_lib::womscp::{Request, ResponseError, RequestFlags};
 
-pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Result<(), ResponseError> {
+pub async fn handle_connection(conn_ptr :Arc<Mutex<SqlitePool>>, stream :&mut TcpStream) -> Result<(), ResponseError> {
     match Request::try_from_tcp(stream).await {
         Ok(req) => { 
             dbg!(&req);
@@ -12,13 +14,15 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
                 return Ok(());
             }
 
+            let conn = conn_ptr.lock().await;
+
             let db_check = sqlx::query(
                 "SELECT s_id, m_id FROM Sensors
                       WHERE s_id = $1 AND m_id = $2"
             )
                 .bind(req.s_id)
                 .bind(req.m_id)
-                .execute(conn)
+                .execute(&*conn)
                 .await;
 
             if let Err(e) = db_check {
@@ -51,7 +55,7 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
                 .bind(req.sensor_type)
                 .bind(req.data)
                 .bind(is_dummy)
-                .execute(conn)
+                .execute(&*conn)
                 .await;
 
             if let Err(e) = db_res {

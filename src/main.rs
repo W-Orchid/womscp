@@ -1,3 +1,6 @@
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
 use tokio::net::TcpListener;
 use sqlx::sqlite::SqlitePool;
 use clap::Parser;
@@ -23,20 +26,25 @@ async fn main() {
 
     let listener = TcpListener::bind(&server_config.address).await.unwrap();
     let conn = SqlitePool::connect(&server_config.database).await.unwrap();
+    let conn_ptr = Arc::new(Mutex::new(conn));
 
     dbg!(&server_config.address);
 
     loop {
-        if let Ok((mut stream, _)) = listener.accept().await {
-            let res = connections::handle_connection(&conn, &mut stream)
-                .await;
+        let local_conn_ptr = Arc::clone(&conn_ptr);
 
-            if let Err(tcp_err) = match res {
-                Ok(_) => stream.try_write(&[0]),
-                Err(res_err) => stream.try_write(&[res_err as u8])
-            } {
-                eprintln!("TCP write error: {:?}", tcp_err);
-            }
+        if let Ok((mut stream, _)) = listener.accept().await {
+            tokio::task::spawn(async move{
+                let res = connections::handle_connection(local_conn_ptr, &mut stream)
+                    .await;
+
+                if let Err(tcp_err) = match res {
+                    Ok(_) => stream.try_write(&[0]),
+                    Err(res_err) => stream.try_write(&[res_err as u8])
+                } {
+                    eprintln!("TCP write error: {:?}", tcp_err);
+                }
+            });
         }
     }
 }
