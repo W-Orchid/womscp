@@ -1,6 +1,7 @@
 use tokio::net::TcpListener;
 use sqlx::sqlite::SqlitePool;
 
+mod init;
 mod connections;
 
 #[tokio::main]
@@ -8,7 +9,7 @@ async fn main() {
     let server_address = "127.0.0.1:3000";
 
     let listener = TcpListener::bind(server_address).await.unwrap();
-    let conn = SqlitePool::connect("sqlite:w_orchid.db").await.unwrap();
+    let conn = SqlitePool::connect().await.unwrap();
 
     dbg!(server_address);
 
