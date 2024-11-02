@@ -13,12 +13,12 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
             }
 
             let db_check = sqlx::query(
-                "SELECT id FROM Sensors
+                "SELECT s_id, m_id FROM Sensors
                       WHERE s_id = $1 AND m_id = $2"
             )
                 .bind(req.s_id)
                 .bind(req.m_id)
-                .fetch_one(conn)
+                .execute(conn)
                 .await;
 
             if let Err(e) = db_check {
@@ -48,10 +48,10 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Res
                 VALUES(NULL, datetime('now'), $1, $2, $3, $4, $5)")
                 .bind(req.m_id)
                 .bind(req.s_id)
-                .bind(req.data)
                 .bind(req.sensor_type)
+                .bind(req.data)
                 .bind(is_dummy)
-                .fetch_all(conn)
+                .execute(conn)
                 .await;
 
             if let Err(e) = db_res {
