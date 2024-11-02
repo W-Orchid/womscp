@@ -3,10 +3,14 @@ use sqlx::SqlitePool;
 
 use womscp_lib::womscp::{Request, ResponseError, RequestFlags};
 
-pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<Request, ResponseError> {
+pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<(), ResponseError> {
     match Request::try_from(stream) {
         Ok(req) => { 
             dbg!(&req);
+
+            if req.flags & RequestFlags::SrvrRdy as u8 == 1 {
+                return Ok(());
+            }
 
             let db_check = sqlx::query(
                 "SELECT id FROM Sensors
@@ -34,13 +38,19 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
                 }
             }
 
+            let is_dummy = if req.flags & RequestFlags::Dummy as u8 == 1 {
+                true
+            } else {
+                false
+            };
+
             let db_res = sqlx::query(
                 "INSERT INTO SensorData
                 VALUES(NULL, datetime('now'), $1, $2, $3, $4)")
                 .bind(req.m_id)
                 .bind(req.s_id)
                 .bind(req.data)
-                .bind(req.flags & RequestFlags::Dummy as u8)
+                .bind(is_dummy)
                 .fetch_all(conn)
                 .await;
 
@@ -49,7 +59,7 @@ pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<
                 return Err(ResponseError::Database);
             }
 
-            Ok(req)
+            Ok(())
         },
         Err(res_err) => {
             eprintln!("WOMSCP parsing error: {:?}", res_err);
