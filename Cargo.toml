@@ -7,3 +7,4 @@ edition = "2021"
 womscp-lib = { git = "https://github.com/W-Orchid/womscp-lib.git" }
 tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite"] }
+toml = "0.8.19"
