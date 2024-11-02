@@ -34,18 +34,19 @@ pub struct ServerConfig {
 
 
 impl ServerConfig {
-    pub fn new() -> Self {
-        // NOTE: Default values for server config.
-        let server_config = ServerConfig {
+    fn default() -> Self {
+        ServerConfig {
             address: "127.0.0.1:3000".to_string(),
             database: "sqlite:w_orchid.db".to_string(),
             microcontroller_count: 1,
             sensors_per_microcontroller: 2
-        };
+        }
+    }
 
-
+    pub fn new() -> Self {
+        // NOTE: Default values for server config.
         if !Path::new(DEFAULT_CONFIG).exists() {
-            server_config
+            Self::default()
         } else {
             DEFAULT_CONFIG.try_into().unwrap()
         }
@@ -66,12 +67,7 @@ impl TryFrom<PathBuf> for ServerConfig {
 
     fn try_from(file: PathBuf) -> Result<Self, Self::Error> {
         // NOTE: Default values for server config.
-        let mut server_config = ServerConfig {
-            address: "127.0.0.1:3000".to_string(),
-            database: "sqlite:w_orchid.db".to_string(),
-            microcontroller_count: 1,
-            sensors_per_microcontroller: 2
-        };
+        let mut server_config = Self::default();
 
         let contents = fs::read_to_string(file)?;
         let config = match contents.parse::<Table>() {
