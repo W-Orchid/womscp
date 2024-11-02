@@ -1,16 +1,30 @@
 use tokio::net::TcpListener;
 use sqlx::sqlite::SqlitePool;
+use clap::Parser;
 
+mod init;
 mod connections;
 
 #[tokio::main]
 async fn main() {
-    let server_address = "127.0.0.1:3000";
 
-    let listener = TcpListener::bind(server_address).await.unwrap();
-    let conn = SqlitePool::connect("sqlite:w_orchid.db").await.unwrap();
+    let cli = init::Cli::parse();
 
-    dbg!(server_address);
+    let server_config : init::ServerConfig = if let Some(path) = cli.config {
+        path.try_into().unwrap()
+    } else {
+        init::ServerConfig::new()
+    };
+
+    if let Some(init::Commands::Init) = cli.command {
+        init::server_init(&server_config).await;
+    };
+
+
+    let listener = TcpListener::bind(&server_config.address).await.unwrap();
+    let conn = SqlitePool::connect(&server_config.database).await.unwrap();
+
+    dbg!(&server_config.address);
 
     loop {
         if let Ok((stream, _)) = listener.accept().await {
