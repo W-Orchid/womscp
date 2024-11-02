@@ -27,8 +27,8 @@ async fn main() {
     dbg!(&server_config.address);
 
     loop {
-        if let Ok((stream, _)) = listener.accept().await {
-            let res = connections::handle_connection(&conn, &stream)
+        if let Ok((mut stream, _)) = listener.accept().await {
+            let res = connections::handle_connection(&conn, &mut stream)
                 .await;
 
             if let Err(tcp_err) = match res {

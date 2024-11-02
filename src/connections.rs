@@ -3,8 +3,8 @@ use sqlx::SqlitePool;
 
 use womscp_lib::womscp::{Request, ResponseError, RequestFlags};
 
-pub async fn handle_connection(conn :&SqlitePool, stream :&TcpStream) -> Result<(), ResponseError> {
-    match Request::try_from(stream) {
+pub async fn handle_connection(conn :&SqlitePool, stream :&mut TcpStream) -> Result<(), ResponseError> {
+    match Request::try_from_tcp(stream).await {
         Ok(req) => { 
             dbg!(&req);
 
