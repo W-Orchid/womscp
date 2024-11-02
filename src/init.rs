@@ -124,10 +124,10 @@ pub async fn server_init(server_config :&ServerConfig) {
 
         for s_id in 0..server_config.sensors_per_microcontroller {
             if let Err(e) = sqlx::query(
-                "INSERT INTO Sensors VALUES(NULL, $1, $2)"
+                "INSERT INTO Sensors VALUES($1, $2)"
             )
-                .bind(s_id)
                 .bind(m_id)
+                .bind(s_id)
                 .execute(&conn)
                 .await
             {
