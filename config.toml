@@ -1,0 +1,7 @@
+address = "127.0.0.1:3000"
+database = "sqlite:w_orchid.db"
+sensor_types = [
+    "humidity"
+]
+microcontroller_count = 5
+sensors_per_microcontroller = 2

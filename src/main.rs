@@ -1,4 +1,3 @@
-use init::server_init;
 use tokio::net::TcpListener;
 use sqlx::sqlite::SqlitePool;
 use clap::Parser;
@@ -18,7 +17,7 @@ async fn main() {
     };
 
     if let Some(init::Commands::Init) = cli.command {
-        server_init(&server_config).await;
+        init::server_init(&server_config).await;
     };
 
 

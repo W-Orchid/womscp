@@ -45,6 +45,7 @@ impl ServerConfig {
             sensors_per_microcontroller: 2
         };
 
+
         if !Path::new(DEFAULT_CONFIG).exists() {
             server_config
         } else {
@@ -58,7 +59,7 @@ impl TryFrom<&str> for ServerConfig {
     type Error = io::Error;
 
     fn try_from(file: &str) -> Result<Self, Self::Error> {
-        file.try_into()
+        PathBuf::from(file).try_into()
     }
 }
 
