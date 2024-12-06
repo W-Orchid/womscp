@@ -7,7 +7,6 @@ mod connections;
 
 #[tokio::main]
 async fn main() {
-
     // parse CLI options and generate config
     let cli = init::Cli::parse();
 
@@ -24,7 +23,6 @@ async fn main() {
 
     // listen for oncoming connections and connect to database
     let listener = TcpListener::bind(&server_config.address).await.unwrap();
-    dbg!(&server_config.address);
 
     let conn = sqlx::pool::PoolOptions::new()
         .max_connections(100)
