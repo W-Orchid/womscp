@@ -16,19 +16,10 @@ This is an async server implementation of the [[https://github.com/W-Orchid/woms
 :properties:
 :id: initializing
 :end:
+If you are using the default configuration, use *w_orchid.db* for _<your_database_file_name_here>_.
 If you are running for the first time:
 #+begin_src shell
-  sqlite3 <your_database_file_name_here>
-#+end_src
-
-Then, from within the sqlite REPL, type:
-#+begin_src ascii
-  .read sql/init.sql
-#+end_src
-
-Press CTRL-D to exit the REPL.
-
-#+begin_src shell
+  sqlite3 <your_database_file_name_here> ".read sql/init.sql"
   ./build/target/womscp-server init
 #+end_src
 

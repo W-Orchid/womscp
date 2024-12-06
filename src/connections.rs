@@ -11,8 +11,6 @@ pub async fn handle_connection(conn :&SqlitePool, mut stream :TcpStream) {
     // parse request from stream
     match Request::try_from_tcp(&mut stream).await {
         Ok(req) => { 
-            dbg!(&req);
-
             // if request is just a ping, respond appropriately
             if req.flags & RequestFlags::SrvrRdy as u8 == RequestFlags::SrvrRdy as u8 {
                 if let Err(tcp_err) = stream.write_all(&[0]).await {
