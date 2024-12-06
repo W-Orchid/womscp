@@ -23,7 +23,6 @@ async fn main() {
 
     // listen for oncoming connections and connect to database
     let listener = TcpListener::bind(&server_config.address).await.unwrap();
-    println!("Server listening on.........{}", &server_config.address);
 
     let conn = sqlx::pool::PoolOptions::new()
         .max_connections(100)
