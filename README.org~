@@ -1,0 +1,47 @@
+#+title: WOMSCP Server
+
+This is an async server implementation of the [[https://github.com/W-Orchid/womscp-lib][WOMSCP]]. It uses sqlite as a database. The configuration can be set in the *config.toml* file.
+
+* Requirements
+- Cargo
+- Sqlite
+
+
+* Build and Run
+#+begin_src shell
+  cargo build --release
+#+end_src
+
+** Initializing
+:properties:
+:id: initializing
+:end:
+If you are running for the first time:
+#+begin_src shell
+  sqlite3 <your_database_file_name_here>
+#+end_src
+
+Then, from within the sqlite REPL, type:
+#+begin_src ascii
+  .read sql/init.sql
+#+end_src
+
+Press CTRL-D to exit the REPL.
+
+#+begin_src shell
+  ./build/target/womscp-server init
+#+end_src
+
+** Running
+If you already setup the server and want to just start it:
+#+begin_src shell
+  ./build/target/womscp-server
+#+end_src
+
+** Resetting Database
+To reset the database just delete your database file (*w_orchid.db* by default) and go through the [[id:initializing][Initialization]] process again.
+
+* Configuring
+You can configure the following options from the *config.toml* file:
+- *address*  - the listening address of the server
+- *database* - the database =sqlite:= path
