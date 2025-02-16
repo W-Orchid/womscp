@@ -33,7 +33,7 @@ To reset the database just delete your database file (*w_orchid.db* by default) 
 * Configuring and Usage
 You can configure the following options from the *config.toml* file:
 - *address*                       - the listening address of the server
-- *database*                      - the database =sqlite:= path
+- *database*                      - the database file path
 - *microcontroller_count*         - the total number of microcontrollers in your system
 - *sensors_per_microcontroller*   - the maximum number of sensors per microcontroller in your system
 
