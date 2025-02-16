@@ -13,7 +13,9 @@ pub async fn handle_connection(conn :&SqlitePool, mut stream :TcpStream) {
         Ok(req) => { 
             // if request is just a ping, respond appropriately
             if req.flags & RequestFlags::SrvrRdy as u8 == RequestFlags::SrvrRdy as u8 {
-                if let Err(tcp_err) = stream.write_all(&[0]).await {
+                if let Err(tcp_err) = 
+                    stream.write_all(&[ResponseError::None as u8]).await 
+                {
                     eprintln!("TCP write error: {:?}", tcp_err);
                 }
                 return;
@@ -35,7 +37,9 @@ pub async fn handle_connection(conn :&SqlitePool, mut stream :TcpStream) {
                 return;
             }
 
-            if let Err(tcp_err) = stream.write_all(&[0]).await {
+            if let Err(tcp_err) = 
+                stream.write_all(&[ResponseError::None as u8]).await 
+            {
                 eprintln!("TCP write error: {:?}", tcp_err);
             }
             return;
