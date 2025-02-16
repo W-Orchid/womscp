@@ -1,4 +1,4 @@
 address = "127.0.0.1:3000"
-database = "sqlite:w_orchid.db"
+database = "w_orchid.db"
 microcontroller_count = 1
 sensors_per_microcontroller = 2
