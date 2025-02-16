@@ -97,7 +97,6 @@ impl TryFrom<PathBuf> for ServerConfig {
 
         server_config.sensors_per_microcontroller = if let Some(_count) = 
             config["sensors_per_microcontroller"].as_integer() {
-
                 _count as u8
             } else {
                 server_config.sensors_per_microcontroller
@@ -109,7 +108,41 @@ impl TryFrom<PathBuf> for ServerConfig {
 
 
 pub async fn server_init(server_config :&ServerConfig) {
-    let conn = sqlx::SqlitePool::connect(&server_config.database).await.unwrap();
+    let options = sqlx::sqlite::SqliteConnectOptions::new()
+        .filename(&server_config.database)
+        .create_if_missing(true);
+
+    let conn = sqlx::SqlitePool::connect_with(options).await.unwrap();
+
+    if let Err(e) = sqlx::query("
+CREATE TABLE Microcontrollers(
+       id INTEGER PRIMARY KEY AUTOINCREMENT);
+
+
+CREATE TABLE Sensors(
+	m_id INT NOT NULL,
+    s_id INT NOT NULL,
+    PRIMARY KEY (m_id, s_id),
+	FOREIGN KEY (m_id) REFERENCES Microcontrollers(id) ON DELETE CASCADE);
+
+
+CREATE TABLE SensorData(
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       timepoint TEXT NOT NULL,
+       m_id INT NOT NULL,
+       s_id INT NOT NULL,
+       sensor_type INT NOT NULL,
+       sensor_data INT NOT NULL,
+       dummy BOOLEAN NOT NULL,       
+       FOREIGN KEY (m_id, s_id) REFERENCES Sensors(m_id, s_id) ON DELETE CASCADE,       
+       FOREIGN KEY (m_id) REFERENCES Microcontrollers(id) ON DELETE CASCADE);
+        "
+    )
+    .execute(&conn)
+    .await 
+    {
+            panic!("Failed to create database tables.\n{:#?}", e);
+    }
 
     for m_id in 0..server_config.microcontroller_count {
         if let Err(e) = sqlx::query(

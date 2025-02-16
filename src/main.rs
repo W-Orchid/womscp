@@ -24,10 +24,13 @@ async fn main() {
     // listen for oncoming connections and connect to database
     let listener = TcpListener::bind(&server_config.address).await.unwrap();
 
+    let mut db = String::from("sqlite:");
+    db += &server_config.database;
+
     let conn = sqlx::pool::PoolOptions::new()
         .max_connections(100)
         .acquire_timeout(std::time::Duration::from_secs(5))
-        .connect(&server_config.database)
+        .connect(&db)
         .await.unwrap();
 
 
